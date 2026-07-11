@@ -258,9 +258,7 @@
       <div class="tag">"your buddy list just got smarter."</div>
       <label>Screen Name</label>
       <input type="text" id="screenname" value="coolguy2006" maxlength="20">
-      <label>Network Key <span style="font-weight:normal;color:#777;">(optional)</span></label>
-      <input type="password" id="netkey" placeholder="leave blank to try free connection">
-      <div class="hint">Need a key? Get one free (no card needed) at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> — sign in with any Google account. If you leave this blank, NetBuddy will try to connect automatically.</div>
+      <div class="hint">Just pick a name and sign on — no setup needed.</div>
       <button class="signonbtn" id="signonbtn">Sign On &raquo;</button>
     </div>
   </div>
@@ -314,15 +312,13 @@
     </div>
   </div>
 
-  <!-- key modal -->
+  <!-- connection retry modal -->
   <div class="win" id="keymodal">
     <div class="titlebar"><div class="ttext">Connection Problem</div></div>
     <div class="body">
-      <b>Couldn't reach the NetBuddy network automatically.</b><br><br>
-      Enter a Network Key to connect manually. Get a free one (no card needed) at
-      <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>.
-      <input type="password" id="keymodal-input" placeholder="AIza...">
-      <button id="keymodal-btn">Reconnect</button>
+      <b>Couldn't reach the NetBuddy network.</b><br><br>
+      This is usually temporary — check your internet connection and try again.
+      <button id="keymodal-btn">Try Again</button>
       <div id="conn-error-detail" style="margin-top:10px;font-family:monospace;font-size:9px;color:#a00;white-space:pre-wrap;"></div>
     </div>
   </div>
@@ -410,7 +406,7 @@ const transcript = document.getElementById('transcript');
 document.getElementById('signonbtn').addEventListener('click', ()=>{
   const sn = document.getElementById('screenname').value.trim();
   screenName = sn || 'coolguy2006';
-  apiKey = document.getElementById('netkey').value.trim();
+  apiKey = '';
   appStartTime = Date.now();
   signonWin.style.display='none';
   buddylistWin.style.display='block';
@@ -531,9 +527,9 @@ function runTool(name, args){
   return "unknown tool";
 }
 
+const WORKER_URL = "https://netbuddy-proxy.karmakarasmita147.workers.dev";
+
 async function callAI(userText){
-  const model = "gemini-3.5-flash";
-  const url = "https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent";
   let contents = [{ role:"user", parts:[{ text: userText }] }];
 
   for(let step=0; step<3; step++){
@@ -542,9 +538,9 @@ async function callAI(userText){
       contents: contents,
       tools: TOOLS
     };
-    const resp = await fetch(url, {
+    const resp = await fetch(WORKER_URL, {
       method:"POST",
-      headers: {"Content-Type":"application/json", "x-goog-api-key": apiKey},
+      headers: {"Content-Type":"application/json"},
       body: JSON.stringify(body)
     });
     if(!resp.ok){
@@ -591,9 +587,8 @@ document.getElementById('msgbox').addEventListener('keydown', e=>{
   if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
 });
 document.getElementById('keymodal-btn').addEventListener('click', ()=>{
-  apiKey = document.getElementById('keymodal-input').value.trim();
   keymodal.style.display='none';
-  document.getElementById('im-status').textContent = 'Reconnected. Send your message again to try it.';
+  document.getElementById('im-status').textContent = 'NetBuddy AI is Online.';
 });
 </script>
 </body>
