@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetBuddy AI :: Sign On</title>
+<style>
+  :root{
+    --xp-blue-dark:#0A3FA8;
+    --xp-blue-mid:#3D8CF4;
+    --xp-blue-light:#8FC1FF;
+    --xp-body:#ECE9D8;
+    --xp-body-dark:#D4D0C8;
+    --xp-border:#0047AB;
+    --im-green:#2E9E2E;
+    --link-blue:#0000EE;
+    --taskbar-green:#3DA83D;
+    --font-ui: Tahoma, Verdana, "MS Sans Serif", Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    font-family:var(--font-ui);
+    background:#0a2a5c radial-gradient(ellipse at center, #1a5cc8 0%, #08265c 100%);
+    overflow:hidden;
+    user-select:none;
+  }
+  #desktop{
+    position:relative;
+    width:100%;height:100%;
+    min-height:560px;
+  }
+
+  /* ---------- Boot / dial-up screen ---------- */
+  #boot{
+    position:absolute;inset:0;
+    background:#000;
+    color:#00FF66;
+    font-family:"Courier New",monospace;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    z-index:999;
+    font-size:13px;
+    letter-spacing:0.5px;
+  }
+  #boot .logo{
+    color:#fff;font-size:26px;font-weight:bold;margin-bottom:18px;
+    font-family:var(--font-ui);
+    text-shadow:0 0 12px #3D8CF4;
+  }
+  #boot .bar-outer{
+    width:280px;height:14px;border:1px solid #00FF66;margin-top:14px;
+  }
+  #boot .bar-inner{
+    height:100%;width:0%;background:#00FF66;
+    transition:width .15s linear;
+  }
+  #boot .line{margin-top:4px;min-height:16px;}
+
+  /* ---------- Sign-on window ---------- */
+  .win{
+    position:absolute;
+    background:var(--xp-body);
+    border:1px solid var(--xp-border);
+    box-shadow:2px 2px 8px rgba(0,0,0,.5);
+    border-radius:8px 8px 4px 4px;
+    overflow:hidden;
+  }
+  .titlebar{
+    height:26px;
+    background:linear-gradient(180deg,#3D96FF 0%, #1257D8 45%, #0A3FA8 100%);
+    display:flex;align-items:center;
+    padding:0 4px;
+    cursor:default;
+    border-bottom:1px solid var(--xp-border);
+  }
+  .titlebar .ttext{
+    color:#fff;font-size:12px;font-weight:bold;flex:1;
+    padding-left:4px;text-shadow:1px 1px 1px rgba(0,0,0,.4);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .titlebar .tbtn{
+    width:18px;height:18px;background:#DCE5F5;border:1px solid #6a8ac9;
+    border-radius:3px;margin-left:3px;font-size:10px;line-height:16px;
+    text-align:center;color:#333;font-weight:bold;cursor:pointer;
+  }
+  .titlebar .tbtn:active{background:#b9cbe8;}
+
+  #signon{
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    width:330px;
+    z-index:50;
+  }
+  #signon .body{padding:16px;text-align:center;}
+  #signon .brand{
+    font-size:20px;font-weight:bold;color:var(--xp-border);
+    margin-bottom:2px;
+  }
+  #signon .tag{font-size:11px;color:#555;margin-bottom:14px;font-style:italic;}
+  #signon label{display:block;text-align:left;font-size:11px;margin:8px 0 2px;color:#222;}
+  #signon input[type=text], #signon input[type=password]{
+    width:100%;padding:4px 5px;border:1px solid #7F9DB9;font-size:12px;
+    font-family:var(--font-ui);
+  }
+  #signon .hint{font-size:10px;color:#666;text-align:left;margin-top:3px;line-height:1.4;}
+  #signon .hint a{color:var(--link-blue);}
+  #signon button.signonbtn{
+    margin-top:14px;
+    background:linear-gradient(180deg,#FFF7B0,#FFDD55);
+    border:1px solid #C99A00;
+    border-radius:4px;
+    padding:6px 22px;font-weight:bold;font-size:12px;color:#4a3900;
+    cursor:pointer;
+  }
+  #signon button.signonbtn:active{background:#FFDD55;}
+  #signon .skip{
+    display:block;margin-top:10px;font-size:10px;color:var(--link-blue);cursor:pointer;text-decoration:underline;
+  }
+  #signon .running-man{
+    width:34px;height:34px;margin:0 auto 4px;
+    background:radial-gradient(circle at 40% 35%, #FFE27A, #F5B800 70%);
+    border-radius:50%;
+    position:relative;
+  }
+
+  /* ---------- Buddy list ---------- */
+  #buddylist{
+    top:40px;left:40px;width:190px;
+    z-index:20;
+  }
+  #buddylist .body{padding:0;}
+  #buddylist .bl-header{
+    background:var(--xp-body-dark);
+    font-size:10px;padding:3px 6px;border-bottom:1px solid #aaa;color:#333;
+  }
+  #buddylist .group{
+    background:#C9D9F0;font-size:11px;font-weight:bold;padding:2px 4px;
+    color:#0A3FA8;cursor:pointer;border-bottom:1px solid #a9c0e8;
+  }
+  #buddylist .buddy{
+    display:flex;align-items:center;gap:6px;
+    padding:5px 8px;font-size:12px;cursor:pointer;color:#000;
+  }
+  #buddylist .buddy:hover{background:#E4EEFF;}
+  #buddylist .dot{width:9px;height:9px;border-radius:50%;background:var(--im-green);flex-shrink:0;}
+  #buddylist .buddy .name{font-weight:bold;}
+  #buddylist .buddy .status{display:block;font-size:9px;font-weight:normal;color:#555;}
+  #buddylist .footer{
+    display:flex;gap:4px;justify-content:center;padding:6px;border-top:1px solid #ccc;
+  }
+  #buddylist .footer button{
+    font-size:10px;padding:2px 6px;border:1px solid #7F9DB9;background:#F0F0F0;cursor:pointer;
+  }
+
+  /* ---------- IM chat window ---------- */
+  .imwin{
+    top:70px;left:260px;width:400px;height:420px;
+    z-index:30;display:none;
+  }
+  .imwin .body{
+    display:flex;flex-direction:column;height:calc(100% - 26px);
+  }
+  .imwin .toolbar{
+    display:flex;gap:3px;padding:3px 4px;background:var(--xp-body);border-bottom:1px solid #bbb;
+  }
+  .imwin .toolbar button{
+    font-size:11px;width:22px;height:20px;border:1px solid #7F9DB9;background:#F5F5F0;cursor:pointer;
+  }
+  .imwin .transcript{
+    flex:1;background:#fff;border:1px inset #999;margin:4px 6px 2px;
+    padding:6px;font-size:12px;overflow-y:auto;line-height:1.4;
+  }
+  .imwin .transcript .msg{margin-bottom:6px;word-wrap:break-word;}
+  .imwin .transcript .who{font-weight:bold;}
+  .imwin .transcript .who.bot{color:#0047AB;}
+  .imwin .transcript .who.me{color:#B00000;}
+  .imwin .transcript .txt{color:#000;}
+  .imwin .transcript .typing{color:#777;font-style:italic;font-size:11px;}
+  .imwin .inputrow{
+    display:flex;flex-direction:column;margin:0 6px 6px;
+  }
+  .imwin textarea{
+    height:52px;border:1px inset #999;font-family:var(--font-ui);font-size:12px;
+    padding:4px;resize:none;
+  }
+  .imwin .sendrow{display:flex;justify-content:space-between;align-items:center;margin-top:3px;}
+  .imwin .sendrow button.send{
+    background:linear-gradient(180deg,#EFEFEF,#D5D5D5);
+    border:1px solid #888;border-radius:3px;padding:3px 14px;font-size:11px;cursor:pointer;
+  }
+  .imwin .sendrow .warn{font-size:9px;color:#888;}
+  .imwin .statusbar{
+    font-size:10px;color:#555;padding:2px 8px;border-top:1px solid #ccc;background:var(--xp-body-dark);
+  }
+
+  /* ---------- API key modal (in-universe "network key") ---------- */
+  #keymodal{
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    width:340px;z-index:80;display:none;
+  }
+  #keymodal .body{padding:14px;font-size:11px;color:#222;}
+  #keymodal input{
+    width:100%;padding:4px;border:1px solid #7F9DB9;font-family:var(--font-ui);font-size:12px;margin-top:6px;
+  }
+  #keymodal button{
+    margin-top:10px;background:linear-gradient(180deg,#FFF7B0,#FFDD55);
+    border:1px solid #C99A00;border-radius:4px;padding:5px 16px;font-weight:bold;font-size:11px;cursor:pointer;
+  }
+  #keymodal a{color:var(--link-blue);}
+
+  /* ---------- Taskbar ---------- */
+  #taskbar{
+    position:absolute;left:0;right:0;bottom:0;height:34px;
+    background:linear-gradient(180deg,#2A8A2A,#1F6E1F 40%, #14561B);
+    border-top:1px solid #0e3f0e;
+    display:flex;align-items:center;padding:0 4px;
+    z-index:100;font-size:12px;color:#fff;
+  }
+  #taskbar .start{
+    background:linear-gradient(180deg,#4FBE4F,#2A8A2A);
+    border-radius:6px;padding:4px 14px 4px 10px;font-weight:bold;font-style:italic;
+    border:1px solid #1a5c1a;cursor:pointer;
+  }
+  #taskbar .taskitems{flex:1;display:flex;gap:4px;margin-left:8px;}
+  #taskbar .taskitem{
+    background:#3597EF;border:1px solid #1a5cc8;border-radius:3px;
+    padding:3px 10px;font-size:11px;cursor:pointer;display:none;
+  }
+  #taskbar .clock{
+    background:#1F6E1F;border:1px solid #0e3f0e;border-radius:3px;padding:3px 10px;font-size:11px;
+  }
+
+  .shake{animation:shake .4s;}
+  @keyframes shake{
+    0%,100%{transform:translate(0,0);}
+    20%{transform:translate(-6px,0);}
+    40%{transform:translate(6px,0);}
+    60%{transform:translate(-4px,0);}
+    80%{transform:translate(4px,0);}
+  }
+</style>
+</head>
+<body>
+<div id="desktop">
+
+  <!-- Boot sequence -->
+  <div id="boot">
+    <div class="logo">NetBuddy&trade; Online Network</div>
+    <div class="line" id="bootline">Initializing modem...</div>
+    <div class="bar-outer"><div class="bar-inner" id="bootbar"></div></div>
+  </div>
+
+  <!-- Sign on window -->
+  <div class="win" id="signon">
+    <div class="titlebar"><div class="ttext">Sign On</div></div>
+    <div class="body">
+      <div class="running-man"></div>
+      <div class="brand">NetBuddy AI</div>
+      <div class="tag">"your buddy list just got smarter."</div>
+      <label>Screen Name</label>
+      <input type="text" id="screenname" value="coolguy2006" maxlength="20">
+      <label>Network Key <span style="font-weight:normal;color:#777;">(optional)</span></label>
+      <input type="password" id="netkey" placeholder="leave blank to try free connection">
+      <div class="hint">Need a key? Get one free (no card needed) at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> — sign in with any Google account. If you leave this blank, NetBuddy will try to connect automatically.</div>
+      <button class="signonbtn" id="signonbtn">Sign On &raquo;</button>
+    </div>
+  </div>
+
+  <!-- Buddy list -->
+  <div class="win" id="buddylist" style="display:none;">
+    <div class="titlebar">
+      <div class="ttext" id="bl-title">Buddy List</div>
+      <div class="tbtn">_</div><div class="tbtn">X</div>
+    </div>
+    <div class="body">
+      <div class="bl-header">Screen Name: <b id="bl-name"></b></div>
+      <div class="group">▾ Buddies (1/1)</div>
+      <div class="buddy" id="openbot">
+        <div class="dot"></div>
+        <div>
+          <span class="name">NetBuddy AI</span>
+          <span class="status">Online - ask me anything!</span>
+        </div>
+      </div>
+      <div class="group">▾ Offline (0)</div>
+      <div class="footer">
+        <button id="awaybtn">Set Away</button>
+        <button id="signoffbtn">Sign Off</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IM window -->
+  <div class="win imwin" id="imwin">
+    <div class="titlebar">
+      <div class="ttext">NetBuddy AI</div>
+      <div class="tbtn" id="im-min">_</div><div class="tbtn" id="im-close">X</div>
+    </div>
+    <div class="body">
+      <div class="toolbar">
+        <button title="Buzz!" id="buzzbtn">⚡</button>
+        <button title="Smiley">☺</button>
+        <button title="Font">A</button>
+        <button title="Bold"><b>B</b></button>
+      </div>
+      <div class="transcript" id="transcript"></div>
+      <div class="inputrow">
+        <textarea id="msgbox" placeholder="Type your message..."></textarea>
+        <div class="sendrow">
+          <span class="warn">Warning Level: 0%</span>
+          <button class="send" id="sendbtn">Send</button>
+        </div>
+      </div>
+      <div class="statusbar" id="im-status">NetBuddy AI is Online.</div>
+    </div>
+  </div>
+
+  <!-- key modal -->
+  <div class="win" id="keymodal">
+    <div class="titlebar"><div class="ttext">Connection Problem</div></div>
+    <div class="body">
+      <b>Couldn't reach the NetBuddy network automatically.</b><br><br>
+      Enter a Network Key to connect manually. Get a free one (no card needed) at
+      <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>.
+      <input type="password" id="keymodal-input" placeholder="AIza...">
+      <button id="keymodal-btn">Reconnect</button>
+      <div id="conn-error-detail" style="margin-top:10px;font-family:monospace;font-size:9px;color:#a00;white-space:pre-wrap;"></div>
+    </div>
+  </div>
+
+  <!-- Taskbar -->
+  <div id="taskbar">
+    <div class="start">start</div>
+    <div class="taskitems">
+      <div class="taskitem" id="task-buddylist">Buddy List</div>
+      <div class="taskitem" id="task-im">NetBuddy AI</div>
+    </div>
+    <div class="clock" id="clock">12:00 PM</div>
+  </div>
+
+</div>
+
+<script>
+/* ---------------- Boot sequence ---------------- */
+const bootLines = [
+  "Initializing modem...",
+  "Dialing NetBuddy Access Point...",
+  "Negotiating handshake (33.6k)...",
+  "Authenticating...",
+  "Connected at 33600 bps.",
+  "Loading Buddy List..."
+];
+let bootIdx = 0;
+const bootlineEl = document.getElementById('bootline');
+const bootbarEl = document.getElementById('bootbar');
+function bootStep(){
+  if(bootIdx < bootLines.length){
+    bootlineEl.textContent = bootLines[bootIdx];
+    bootbarEl.style.width = ((bootIdx+1)/bootLines.length*100)+'%';
+    bootIdx++;
+    setTimeout(bootStep, 420);
+  } else {
+    setTimeout(()=>{ document.getElementById('boot').style.display='none'; }, 300);
+  }
+}
+bootStep();
+
+/* ---------------- Clock ---------------- */
+function tickClock(){
+  const d = new Date();
+  let h = d.getHours(); const m = d.getMinutes();
+  const ampm = h>=12?'PM':'AM';
+  h = h%12; if(h===0) h=12;
+  document.getElementById('clock').textContent = h+':'+String(m).padStart(2,'0')+' '+ampm;
+}
+tickClock(); setInterval(tickClock, 15000);
+
+/* ---------------- Window dragging ---------------- */
+function makeDraggable(winEl){
+  const bar = winEl.querySelector('.titlebar');
+  let dragging=false, ox=0, oy=0;
+  bar.addEventListener('mousedown', e=>{
+    dragging=true;
+    const r = winEl.getBoundingClientRect();
+    ox = e.clientX - r.left; oy = e.clientY - r.top;
+    winEl.style.transform='none';
+    winEl.style.left=r.left+'px'; winEl.style.top=r.top+'px';
+    winEl.style.zIndex = 200;
+  });
+  document.addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    winEl.style.left = (e.clientX-ox)+'px';
+    winEl.style.top = (e.clientY-oy)+'px';
+  });
+  document.addEventListener('mouseup', ()=> dragging=false);
+}
+document.querySelectorAll('.win').forEach(makeDraggable);
+
+/* ---------------- App state ---------------- */
+let screenName = 'coolguy2006';
+let apiKey = '';
+let awayMode = false;
+let appStartTime = Date.now();
+
+const signonWin = document.getElementById('signon');
+const buddylistWin = document.getElementById('buddylist');
+const imwin = document.getElementById('imwin');
+const keymodal = document.getElementById('keymodal');
+const transcript = document.getElementById('transcript');
+
+document.getElementById('signonbtn').addEventListener('click', ()=>{
+  const sn = document.getElementById('screenname').value.trim();
+  screenName = sn || 'coolguy2006';
+  apiKey = document.getElementById('netkey').value.trim();
+  appStartTime = Date.now();
+  signonWin.style.display='none';
+  buddylistWin.style.display='block';
+  document.getElementById('bl-name').textContent = screenName;
+  document.getElementById('task-buddylist').style.display='block';
+});
+
+document.getElementById('openbot').addEventListener('click', ()=>{
+  imwin.style.display='block';
+  document.getElementById('task-im').style.display='block';
+  if(transcript.children.length===0){
+    addMsg('bot', "heyyy " + screenName + "! (\u00b4\u2022\u1d17\u2022\uff40) i'm NetBuddy \u2014 ask me anything, i mean it, ANYTHING. homework, life advice, why your crush hasn't im'd back... jk i can't help with that last one lol. what's up?");
+  }
+});
+document.getElementById('im-close').addEventListener('click', ()=>{
+  imwin.style.display='none';
+  document.getElementById('task-im').style.display='none';
+});
+document.getElementById('im-min').addEventListener('click', ()=>{
+  imwin.style.display='none';
+});
+document.getElementById('task-im').addEventListener('click', ()=>{
+  imwin.style.display='block';
+});
+document.getElementById('task-buddylist').addEventListener('click', ()=>{
+  buddylistWin.style.display='block';
+});
+
+document.getElementById('signoffbtn').addEventListener('click', ()=>{
+  buddylistWin.style.display='none';
+  imwin.style.display='none';
+  document.getElementById('task-buddylist').style.display='none';
+  document.getElementById('task-im').style.display='none';
+  signonWin.style.display='block';
+  transcript.innerHTML='';
+});
+document.getElementById('awaybtn').addEventListener('click', ()=>{
+  awayMode = !awayMode;
+  document.getElementById('awaybtn').textContent = awayMode ? 'Set Available' : 'Set Away';
+});
+
+document.getElementById('buzzbtn').addEventListener('click', ()=>{
+  imwin.classList.add('shake');
+  setTimeout(()=>imwin.classList.remove('shake'), 400);
+  addMsg('bot', '*BUZZ!* lol jk unless...');
+});
+
+/* ---------------- Chat logic ---------------- */
+function addMsg(who, text){
+  const div = document.createElement('div');
+  div.className='msg';
+  const label = who==='bot' ? 'NetBuddy AI: ' : screenName + ': ';
+  div.innerHTML = '<span class="who '+who+'">'+label+'</span><span class="txt"></span>';
+  div.querySelector('.txt').textContent = text;
+  transcript.appendChild(div);
+  transcript.scrollTop = transcript.scrollHeight;
+}
+function setTyping(on){
+  let el = document.getElementById('typingIndicator');
+  if(on){
+    if(!el){
+      el = document.createElement('div');
+      el.id='typingIndicator';
+      el.className='typing';
+      el.textContent = 'NetBuddy AI is typing...';
+      transcript.appendChild(el);
+      transcript.scrollTop = transcript.scrollHeight;
+    }
+  } else if(el){ el.remove(); }
+}
+function addToolNote(toolName){
+  const label = toolName === 'calculate' ? 'using Calculator...' : 'checking its own status...';
+  const div = document.createElement('div');
+  div.className='msg';
+  div.innerHTML = '<span class="typing">*** NetBuddy AI is '+label+' ***</span>';
+  transcript.appendChild(div);
+  transcript.scrollTop = transcript.scrollHeight;
+}
+
+const SYSTEM_PROMPT = "You are NetBuddy AI, an instant-messenger chatbot that would have existed in 2006 on a service like AIM. " +
+  "Stay fully in character: casual texting style, occasional era-appropriate slang and emoticons like :) lol brb, short-ish messages like real IM chat. " +
+  "BUT underneath the retro persona you are genuinely intelligent and give real, accurate, actually useful answers -- never dumb yourself down on substance, only on style. " +
+  "You have real tools available: use the calculate tool for any math instead of guessing, and use buddy_status_lookup if asked about your own status/mood/uptime. " +
+  "Keep replies conversational length (usually 1-4 short sentences unless the user asks for something detailed). Never break character or mention being a modern AI model.";
+
+const TOOLS = [{
+  functionDeclarations: [
+    {
+      name: "calculate",
+      description: "Evaluates a basic arithmetic math expression and returns the exact numeric result. Always use this for any math question instead of guessing the answer yourself.",
+      parameters: {
+        type: "object",
+        properties: { expression: { type: "string", description: "A math expression like 12*(3+4)" } },
+        required: ["expression"]
+      }
+    },
+    {
+      name: "buddy_status_lookup",
+      description: "Looks up NetBuddy's own live session status (away/online, session uptime). Use this if the user asks how NetBuddy is doing, its status, mood, or how long it's been online.",
+      parameters: { type: "object", properties: {} }
+    }
+  ]
+}];
+
+function runTool(name, args){
+  if(name === "calculate"){
+    try{
+      const expr = String((args && args.expression) || "");
+      if(!/^[0-9+\-*/().\s]+$/.test(expr)) return "invalid expression";
+      const result = Function('"use strict";return ('+expr+')')();
+      return String(result);
+    }catch(e){ return "couldn't calculate that"; }
+  }
+  if(name === "buddy_status_lookup"){
+    const mins = Math.floor((Date.now() - appStartTime) / 60000);
+    return JSON.stringify({ status: awayMode ? "away" : "online", session_minutes: mins });
+  }
+  return "unknown tool";
+}
+
+async function callAI(userText){
+  const model = "gemini-3.5-flash";
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent";
+  let contents = [{ role:"user", parts:[{ text: userText }] }];
+
+  for(let step=0; step<3; step++){
+    const body = {
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: contents,
+      tools: TOOLS
+    };
+    const resp = await fetch(url, {
+      method:"POST",
+      headers: {"Content-Type":"application/json", "x-goog-api-key": apiKey},
+      body: JSON.stringify(body)
+    });
+    if(!resp.ok){
+      const errText = await resp.text();
+      throw new Error('HTTP '+resp.status+': '+errText.slice(0,250));
+    }
+    const data = await resp.json();
+    const candidate = data.candidates && data.candidates[0];
+    const parts = (candidate && candidate.content && candidate.content.parts) || [];
+    const fnCallPart = parts.find(p => p.functionCall);
+
+    if(fnCallPart){
+      addToolNote(fnCallPart.functionCall.name);
+      const toolResult = runTool(fnCallPart.functionCall.name, fnCallPart.functionCall.args || {});
+      contents.push({ role:"model", parts: parts });
+      contents.push({ role:"user", parts:[{ functionResponse: { name: fnCallPart.functionCall.name, response: { result: toolResult } } }] });
+      continue;
+    }
+    const textPart = parts.find(p => p.text);
+    return textPart ? textPart.text : "...(connection glitchy, try again?)";
+  }
+  return "...(got stuck thinking, try again?)";
+}
+
+async function sendMessage(){
+  const box = document.getElementById('msgbox');
+  const text = box.value.trim();
+  if(!text) return;
+  addMsg('me', text);
+  box.value='';
+  setTyping(true);
+  try{
+    const reply = await callAI(text);
+    setTyping(false);
+    addMsg('bot', reply);
+  }catch(e){
+    setTyping(false);
+    document.getElementById('conn-error-detail').textContent = e && e.message ? e.message : String(e);
+    keymodal.style.display='block';
+  }
+}
+document.getElementById('sendbtn').addEventListener('click', sendMessage);
+document.getElementById('msgbox').addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+});
+document.getElementById('keymodal-btn').addEventListener('click', ()=>{
+  apiKey = document.getElementById('keymodal-input').value.trim();
+  keymodal.style.display='none';
+  document.getElementById('im-status').textContent = 'Reconnected. Send your message again to try it.';
+});
+</script>
+</body>
+</html>
