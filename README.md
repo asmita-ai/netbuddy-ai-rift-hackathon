@@ -6,14 +6,13 @@ kids actually talked to on AOL Instant Messenger. Same nostalgic shell,
 except this time the buddy is genuinely, actually intelligent.
 
 ## How to run it
-1. Open `netbuddy-ai.html` in any browser (double-click it — no install, no build step).
+1. Open the live link — no install, no build step, no API key, nothing to set up.
 2. Sign on with any screen name.
-3. **Network Key field:** this is your Anthropic API key (get a free one at
-   console.anthropic.com). You can leave it blank and hit Sign On — if the
-   app can't connect automatically, a "Connection Problem" window will pop
-   up in-theme asking you to paste a key. This is deliberate: it mirrors how
-   2000s software really did ask you for a registration/network key.
-4. Double-click "NetBuddy AI" in the buddy list to open the chat window and talk.
+3. Double-click "NetBuddy AI" in the buddy list to open the chat window and talk.
+
+The AI is powered by Gemini through a small serverless proxy (Cloudflare Worker)
+that holds the API key server-side, so anyone opening the link can use it
+immediately with zero setup.
 
 ## What's authentically 2006 here
 - Dial-up boot sequence ("Negotiating handshake at 33.6k...")
@@ -39,7 +38,7 @@ was secretly this smart — and this capable — the whole time."
 | Creativity & originality | Specific, real piece of internet history (AIM chatbots) rather than a generic reskin |
 | 2000s UI/UX authenticity | AIM + XP Luna chrome recreated in detail, not just a color filter |
 | Functionality | Real working chat, not a static mockup |
-| Technical execution | Single dependency-free HTML/CSS/JS file, no build tooling, clean structure |
+| Technical execution | Single-file frontend + a real serverless proxy backend (Cloudflare Worker) holding the AI key securely, with agentic tool-calling |
 | Presentation | One-line pitch: "SmarterChild, but it's actually smart now" |
 | AI integration (bonus) | The entire product *is* the AI integration |
 
@@ -49,11 +48,9 @@ was basically a glorified magic 8-ball. I rebuilt that exact experience —
 dial-up boot screen, buddy list, XP window chrome — but wired a real AI
 brain behind it, so the nostalgic shell you remember now actually thinks."
 
-## Notes for you before you submit
-- If you want this fully self-contained with zero setup for judges, the
-  cleanest option is to deploy it (e.g. Netlify/Vercel drag-and-drop) and
-  point it at a tiny serverless proxy that holds your API key server-side —
-  avoids asking judges for their own key at all. Say the word and I'll build
-  that proxy version too; it's a ~15-minute add-on.
-- Everything is in one file (`netbuddy-ai.html`) on purpose — easiest to zip,
-  easiest to host anywhere, easiest for a judge to just double-click.
+## Architecture note
+`index.html` is the entire frontend — no build step. It talks to a Cloudflare
+Worker (`netbuddy-proxy`) that holds the Gemini API key as a secret and proxies
+requests to Gemini's `generateContent` endpoint. This keeps the key off the
+client entirely and means anyone opening the live link can use the app with
+zero setup — no signup, no key, nothing to configure.
